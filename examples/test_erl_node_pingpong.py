@@ -25,10 +25,51 @@ from py_interface import erl_eventhandler
 mb = None
 quiet = False
 
+def ExprRebuildAtoms(expr):
+    if type(expr) == types.StringType:
+        if len(expr) >= 2 and expr[0] == expr[-1] == "'":
+            atomText = expr[1:-1]
+            return erl_term.ErlAtom(atomText)
+        else:
+            return expr
+    elif type(expr) == types.ListType:
+        rebuiltList = []
+        for elem in expr:
+            rebuiltElem = ExprRebuildAtoms(elem)
+            rebuiltList.append(rebuiltElem)
+        return rebuiltList
+    elif type(expr) == types.TupleType:
+        rebuiltList = []
+        for elem in list(expr):
+            rebuiltElem = ExprRebuildAtoms(elem)
+            rebuiltList.append(rebuiltElem)
+        return tuple(rebuiltList)
+    else:
+        return expr
+
+def _TestMBoxRPCResponse(msg):
+    print "RPC answer: %s" % `msg`
+
+def process_protocol(data,node,socket_id):
+    print data,node,socket_id
+    fargs = [node,socket_id,data]
+    global mb
+    mb.SendRPC(node, "ss_socket_agent", 'forward', map(lambda x: ExprRebuildAtoms(x),fargs), _TestMBoxRPCResponse)
+
+
+    
 def __TestMBoxCallback(msg, *k, **kw):
     global mb, quiet
     if not quiet:
         print "Incoming msg=%s (k=%s, kw=%s)" % (`msg`, `k`, `kw`)
+    data = msg[0].contents
+    node = msg[1].atomText
+    socket_id = msg[2].contents
+
+    process_protocol(data,node,socket_id)
+
+     
+
     if type(msg) == types.TupleType:
         if len(msg) == 2:
             if erl_term.IsErlPid(msg[0]):

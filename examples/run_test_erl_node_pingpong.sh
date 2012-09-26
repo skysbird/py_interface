@@ -14,12 +14,12 @@ $erl -noinput -detach -sname ensure_epmd_started@localhost -s erlang halt
 
 # Now start the pythonnode
 PYTHONPATH=..:$PYTHONPATH ./test_erl_node_pingpong.py \
-    -n py_interface_test@localhost -c cookie \
+    -n ss1@localhost -c 123456 \
 	 > test_erl_node_pingpong.log-py 2>&1 &
 pynode=$!
 
 $erl -noinput -sname enode1@localhost \
-    -setcookie cookie \
+    -setcookie 123456 \
     -s test_erl_node_pingpong start \
     -s erlang halt
 

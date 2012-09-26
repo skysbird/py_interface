@@ -283,7 +283,7 @@ class _ErlRexMBox(ErlMBox):
            len(self._pendingRPCs) > 0:
             self._RPCAnswer(sourceNodeName, msg[1])
         else:
-            erl_common.Debug("REX: Unexpected msg: %s" % `msg`)
+            erl_common.Debug(M,"REX: Unexpected msg: %s" % `msg`)
 
     def _RPCAnswer(self, sourceNodeName, answer):
         # Does this assumption always hold:

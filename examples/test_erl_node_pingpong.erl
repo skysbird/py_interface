@@ -12,7 +12,7 @@
 
 
 start() ->
-    start(['py_interface_test@localhost']).
+    start(['ss1@localhost']).
 
 start([OtherNode]) ->
     Term = {self(), [1,		% small_integer_ext

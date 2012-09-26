@@ -24,7 +24,7 @@ def TestAlive2Resp(result, creation):
 
 def TestAlive2RespConnected(creation):
     print "Alive2RespConnected, creation=%d" % creation
-    nodeToCheckFor = "flerp"
+    nodeToCheckFor = "nonode@nohost"
     print "Checking for node named \"%s\"." % nodeToCheckFor
     e.PortPlease2Req(nodeToCheckFor, TestPort2Resp)
 
