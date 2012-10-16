@@ -379,6 +379,8 @@ Note: When using the Tkinter eventhandler, you cannot delete timer-events."""
             eList = self.exceptEvents.keys()
 
             timeout = None
+            #FIXME block issue in celery
+            timeout = 0.5
             if len(self.timerEvents) > 0:
                 firstTimerEv = self.timerEvents[0]
                 now = time.time()
