@@ -133,7 +133,15 @@ def main(argv):
                              map(lambda x: ExprRebuildAtoms(eval(x)),
                                  fargs)))
 
+    """import threading
+    threading.Thread(target = evhand.AddTimerEvent,args=(0.001,
+                         erl_common.Callback(
+                             SendTheRPC, m, remoteNode,
+                             module, function,
+                             map(lambda x: ExprRebuildAtoms(eval(x)),
+                                 fargs)))).start()"""
     print "Looping..."
+    #threading.Thread(target=evhand.Loop,args=()).start()
     evhand.Loop()
     sys.exit(0)
 

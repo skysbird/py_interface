@@ -37,6 +37,7 @@ import sys
 import string
 import select
 import time
+import socket
 try:
     from Tkinter import tkinter
     import Tkinter
@@ -158,8 +159,36 @@ class _EventHandler:
     EXCEPT = 4
 
     def __init__(self):
+        #dummpy_fd notify the blocking select,because readEvents,writeEvents,exceptEvents maybe changed
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        try:
+            os.remove("/tmp/py_interface.sock")
+        except OSError:
+            pass
+        s.bind("/tmp/py_interface.sock")
+        s.listen(1)
+
+        self.dummy_fd = s
+        
+        #dummy server connection
+        self.dummy_conn = None
+
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.connect("/tmp/py_interface.sock")
+        self.dummy_fd_w = s 
         # mappings of connection --> callback
         self.readEvents = {}
+        from py_interface.erl_async_conn import ErlAsyncPeerConnection
+ 
+        def dummy_read(sock):
+            newData = sock.recv(1024)
+   
+        def dummy_accept(sock):
+            conn, addr = sock.accept()
+            self.dummy_conn = ErlAsyncPeerConnection(conn)
+            #self.PushReadEvent(self.dummy_conn, dummy_read)
+
+        self.readEvents[self.dummy_fd] = [dummy_accept]
         self.writeEvents = {}
         self.exceptEvents = {}
 
@@ -205,7 +234,8 @@ Note: When using the Tkinter eventhandler, you cannot delete timer-events."""
         self.readEvents[connection] = newHandlers
         if self.state == self.STATE_TK:
             self._TkPushFileHandler(self.READ, connection)
-            
+        self.dummy_fd_w.send("1")
+     
 
     def PopReadEvent(self, connection):
         """Unregister a read callback for a connection.
@@ -378,9 +408,8 @@ Note: When using the Tkinter eventhandler, you cannot delete timer-events."""
             wList = self.writeEvents.keys()
             eList = self.exceptEvents.keys()
 
+
             timeout = None
-            #FIXME block issue in celery
-            timeout = 0.5
             if len(self.timerEvents) > 0:
                 firstTimerEv = self.timerEvents[0]
                 now = time.time()
@@ -423,7 +452,12 @@ Note: When using the Tkinter eventhandler, you cannot delete timer-events."""
             # Check for handles that are clear for reading
             for readable in reads:
                 cb = self.readEvents[readable][0]
-                cb()
+                if readable == self.dummy_fd:
+                    cb(self.dummy_fd)
+                elif readable == self.dummy_conn:
+                    cb(self.dummy_conn)
+                else:
+                    cb()
 
             # Check for handles that are clear for writing
             for writable in writes:
