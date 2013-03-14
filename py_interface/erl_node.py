@@ -292,6 +292,8 @@ class _ErlRexMBox(ErlMBox):
         # So the pendingRPCs is one queue per node.
         if self._pendingRPCs.has_key(sourceNodeName):
             pendingRPCs = self._pendingRPCs[sourceNodeName]
+            if len(pendingRPCs)==0:
+              return
             cb = pendingRPCs[0]
             self._pendingRPCs[sourceNodeName] = pendingRPCs[1:]
             cb(answer)
